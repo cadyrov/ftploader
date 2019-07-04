@@ -10,4 +10,17 @@
     #reboot
 #check 
     #go env
+#usage
+    # git clone https://github.com/cadyrov/ftploader
+    # go build /home/SERVERNAME/ftploader/
+    #crontab /etc/crontab 
+    #crontab -e
+    * * * * * /home/SERVERNAME/ftploader/main
+    
+    curl or http SERVERNAME:3000/download?path=/home/SERVERNAME/ftploader/example.yml
 
+    set config ftp 
+    #mcedit /home/SERVERNAME/ftploader/config.yml
+
+    set files to download 
+    path=/home/SERVERNAME/ftploader/example.yml
