@@ -1,0 +1,6 @@
+ftp:
+  host: "ftp.radius.ru:8021"
+  login: "GS"
+  password: "GS"
+  sourcePath: "PHOTO_HH_MSK"
+  destinationPath: "/Users/kot/Documents/dowm"
