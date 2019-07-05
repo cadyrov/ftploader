@@ -23,7 +23,26 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/download", download).Methods("GET")
 	log.Println("Listening...")
-	http.ListenAndServe(":"+port, r)
+	err := http.ListenAndServe(":"+port, r)
+	if err != nil {
+		toLog(err.Error())
+	}
+}
+
+func toLog(msg string) {
+	config := app.NewConfig()
+	if config.FTP.LogPath != "" {
+		f, err := os.OpenFile(config.FTP.LogPath,
+			os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			log.Println(err)
+		}
+		defer f.Close()
+		logger := log.New(f, "ftploader", log.LstdFlags)
+		logger.Println(msg)
+	} else {
+		log.Println(msg)
+	}
 }
 
 func download(w http.ResponseWriter, r *http.Request) {
@@ -31,7 +50,7 @@ func download(w http.ResponseWriter, r *http.Request) {
 
 		data, err := ioutil.ReadFile(pth[0])
 		if err != nil {
-			log.Println(err)
+			toLog(err.Error())
 			return
 		}
 		type slicefls struct {
@@ -40,7 +59,7 @@ func download(w http.ResponseWriter, r *http.Request) {
 		sfls := slicefls{}
 		errs := yaml.Unmarshal([]byte(data), &sfls)
 		if errs != nil {
-			log.Println(errs)
+			toLog(errs.Error())
 			return
 		}
 		copyFiles(sfls.Files)
@@ -52,6 +71,7 @@ func download(w http.ResponseWriter, r *http.Request) {
 }
 
 func copyFiles(slicefls []string) {
+	toLog("process started")
 	config := app.NewConfig()
 	var wg sync.WaitGroup
 	if slicefls != nil {
@@ -59,45 +79,67 @@ func copyFiles(slicefls []string) {
 			wg.Add(1)
 			name := value
 			go func() {
-				oneFile(name, name, *config)
-				fmt.Printf("file copied %v \n", name)
+				msg := oneFile(name, name, *config)
+				toLog(msg)
 				wg.Done()
 			}()
 		}
 	}
 	wg.Wait()
-	fmt.Println("process finished")
+	toLog("process finished")
 }
 
 func check(e error) {
 	if e != nil {
-		panic(e)
+		toLog(e.Error())
 	}
 }
 
 func oneFile(fileIn string, fileOut string, cnf app.Config) (result string) {
-	config := goftp.Config{
-		User:               cnf.FTP.Login,
-		Password:           cnf.FTP.Password,
-		ConnectionsPerHost: 10,
-		Timeout:            10 * time.Second,
-		Logger:             os.Stderr,
+	src := cnf.FTP.SourcePath + "/" + fileIn
+	destination := cnf.FTP.DestinationPath + "/" + fileOut
+	ok, err := exists(destination)
+	isExist := false
+	if ok && err == nil {
+		isExist = true
 	}
+	if cnf.FTP.IsRewrite == true || !isExist {
+		config := goftp.Config{
+			User:               cnf.FTP.Login,
+			Password:           cnf.FTP.Password,
+			ConnectionsPerHost: 10,
+			Timeout:            10 * time.Second,
+			Logger:             os.Stderr,
+		}
 
-	client, err := goftp.DialConfig(config, cnf.FTP.Host)
-	check(err)
+		client, err := goftp.DialConfig(config, cnf.FTP.Host)
+		check(err)
 
-	// download to a buffer instead of file
-	buf := new(bytes.Buffer)
-	err = client.Retrieve(cnf.FTP.SourcePath+"/"+fileIn, buf)
-	check(err)
+		// download to a buffer instead of file
+		buf := new(bytes.Buffer)
+		err = client.Retrieve(src, buf)
+		check(err)
 
-	fl, err := os.Create(cnf.FTP.DestinationPath + "/" + fileOut)
-	check(err)
-	defer fl.Close()
+		fl, err := os.Create(destination)
+		check(err)
+		defer fl.Close()
 
-	n2, err := fl.Write(buf.Bytes())
-	check(err)
-	result = fmt.Sprintf("wrote %v bytes in %v", n2, fileOut)
+		n2, err := fl.Write(buf.Bytes())
+		check(err)
+		result = fmt.Sprintf("wrote %v bytes in %v", n2, fileOut)
+	} else {
+		result = fmt.Sprintf("file %v exists work done", destination)
+	}
 	return
+}
+
+func exists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return true, err
 }

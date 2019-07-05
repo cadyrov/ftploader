@@ -4,3 +4,5 @@ ftp:
   password: "GS"
   sourcePath: "PHOTO_HH_MSK"
   destinationPath: "/Users/kot/Documents/dowm"
+  isRewrite: true
+  logPath: "/Users/kot/Documents/dowm/log.log"

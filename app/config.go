@@ -15,6 +15,8 @@ type ftp struct {
 	Login           string `yaml:"login"`
 	SourcePath      string `yaml:"sourcePath"`
 	DestinationPath string `yaml:"destinationPath"`
+	IsRewrite       bool   `yaml:"isRewrite"`
+	LogPath         string `yaml:"logPath"`
 }
 
 func NewConfig() *Config {
