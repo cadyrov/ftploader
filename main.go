@@ -62,6 +62,7 @@ func download(w http.ResponseWriter, r *http.Request) {
 			toLog(errs.Error())
 			return
 		}
+		toLog(fmt.Sprintf("%v files created", len(sfls.Files)))
 		copyFiles(sfls.Files)
 	} else {
 		w.Write([]byte("send path parameter"))
@@ -74,18 +75,24 @@ func copyFiles(slicefls []string) {
 	toLog("process started")
 	config := app.NewConfig()
 	var wg sync.WaitGroup
+	goroutines := make(chan int, 10)
+	// Read data from input channel
 	if slicefls != nil {
 		for _, value := range slicefls {
-			wg.Add(1)
+			toLog(value)
 			name := value
-			go func() {
+			goroutines <- 1
+			wg.Add(1)
+			go func(name string, goroutines <-chan int, wg *sync.WaitGroup) {
 				msg := oneFile(name, name, *config)
 				toLog(msg)
+				<-goroutines
 				wg.Done()
-			}()
+			}(name, goroutines, &wg)
 		}
 	}
 	wg.Wait()
+	close(goroutines)
 	toLog("process finished")
 }
 
