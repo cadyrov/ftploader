@@ -1,8 +1,8 @@
 ftp:
-  host: "ftp.radius.ru:8021"
-  login: "GS"
-  password: "GS"
-  sourcePath: "PHOTO_HH_MSK"
-  destinationPath: "/Users/kot/Documents/dowm"
+  host: "host:port"
+  login: "***"
+  password: "***"
+  sourcePath: "initial directory"
+  destinationPath: "path_to_dir_download"
   isRewrite: true
-  logPath: "/Users/kot/Documents/dowm/log.log"
+  logPath: "path_to_log_file"
