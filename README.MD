@@ -12,7 +12,9 @@
     #go env
 #usage
     # git clone https://github.com/cadyrov/ftploader
+    
     # go build /home/SERVERNAME/ftploader/
+    
     #crontab /etc/crontab 
     #crontab -e
     * * * * * /home/SERVERNAME/ftploader/main
@@ -24,3 +26,4 @@
 
     set files to download 
     path=/home/SERVERNAME/ftploader/example.yml
+    
