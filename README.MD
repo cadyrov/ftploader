@@ -19,7 +19,7 @@
     #crontab -e
     * * * * * /home/SERVERNAME/ftploader/main
     
-    curl or http SERVERNAME:3000/download?path=/home/SERVERNAME/ftploader/example.yml
+    curl or http SERVERNAME:3000/download?path=/home/SERVERNAME/ftploader/example.yml&log=/home/SERVERNAME/www/logs/log.log
 
     set config ftp 
     #mcedit /home/SERVERNAME/ftploader/config.yml

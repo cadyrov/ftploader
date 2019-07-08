@@ -15,6 +15,8 @@ import (
 	"time"
 )
 
+var logpath string = ""
+
 func main() {
 	port := "3000"
 	if len(os.Args) == 2 {
@@ -31,7 +33,10 @@ func main() {
 
 func toLog(msg string) {
 	config := app.NewConfig()
-	if config.FTP.LogPath != "" {
+	if logpath == "" && config.FTP.LogPath != "" {
+		logpath = config.FTP.LogPath
+	}
+	if logpath != "" {
 		f, err := os.OpenFile(config.FTP.LogPath,
 			os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
@@ -47,7 +52,9 @@ func toLog(msg string) {
 
 func download(w http.ResponseWriter, r *http.Request) {
 	if pth, ok := r.URL.Query()["path"]; ok && len(pth) > 0 {
-
+		if lg, ok := r.URL.Query()["log"]; ok && len(lg) > 0 {
+			logpath = lg[0]
+		}
 		data, err := ioutil.ReadFile(pth[0])
 		if err != nil {
 			toLog(err.Error())
