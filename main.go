@@ -71,6 +71,7 @@ func download(w http.ResponseWriter, r *http.Request) {
 		}
 		toLog(fmt.Sprintf("%v создано", len(sfls.Files)))
 		copyFiles(sfls.Files)
+		w.Write([]byte("Process finished"))
 	} else {
 		w.Write([]byte("send path parameter"))
 		w.WriteHeader(http.StatusBadRequest)
