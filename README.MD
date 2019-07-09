@@ -13,17 +13,17 @@
 #usage
     # git clone https://github.com/cadyrov/ftploader
     
-    # go build /home/SERVERNAME/ftploader/
+    # go build -o main /path/to/ftploader/
     
     #crontab /etc/crontab 
     #crontab -e
-    * * * * * /home/SERVERNAME/ftploader/main
+    * * * * * /path/to/ftploader/main
     
-    curl or http SERVERNAME:3000/download?path=/home/SERVERNAME/ftploader/example.yml&log=/home/SERVERNAME/www/logs/log.log
+    curl or http SERVERNAME:3000/download?path=/path/to/fileyml/example.yml&log=/path/to/logs/log.log
 
     set config ftp 
-    #mcedit /home/SERVERNAME/ftploader/config.yml
+    #mcedit /path/to/config.yml
 
     set files to download 
-    path=/home/SERVERNAME/ftploader/example.yml
+    path=/path/to/example.yml
     

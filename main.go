@@ -69,7 +69,7 @@ func download(w http.ResponseWriter, r *http.Request) {
 			toLog(errs.Error())
 			return
 		}
-		toLog(fmt.Sprintf("%v files created", len(sfls.Files)))
+		toLog(fmt.Sprintf("%v создано", len(sfls.Files)))
 		copyFiles(sfls.Files)
 	} else {
 		w.Write([]byte("send path parameter"))
@@ -140,9 +140,9 @@ func oneFile(fileIn string, fileOut string, cnf app.Config) (result string) {
 
 		n2, err := fl.Write(buf.Bytes())
 		check(err)
-		result = fmt.Sprintf("wrote %v bytes in %v", n2, fileOut)
+		result = fmt.Sprintf("записано %v байт в %v", n2, fileOut)
 	} else {
-		result = fmt.Sprintf("file %v exists work done", destination)
+		result = fmt.Sprintf("%v загружен", destination)
 	}
 	return
 }

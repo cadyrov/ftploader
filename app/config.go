@@ -21,7 +21,7 @@ type ftp struct {
 }
 
 func NewConfig() *Config {
-	data, err := ioutil.ReadFile("./config.yml")
+	data, err := ioutil.ReadFile("../config.yml")
 	if err != nil {
 		panic(err)
 	}
