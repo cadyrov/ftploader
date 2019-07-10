@@ -24,10 +24,10 @@ func main() {
 	}
 	r := mux.NewRouter()
 	r.HandleFunc("/download", download).Methods("GET")
-	log.Println("Listening...")
+	fmt.Println("Listening...")
 	err := http.ListenAndServe(":"+port, r)
 	if err != nil {
-		toLog(err.Error())
+		fmt.Println(err.Error())
 	}
 }
 
@@ -37,7 +37,7 @@ func toLog(msg string) {
 		logpath = config.FTP.LogPath
 	}
 	if logpath != "" {
-		f, err := os.OpenFile(config.FTP.LogPath,
+		f, err := os.OpenFile(logpath,
 			os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			log.Println(err)
@@ -69,7 +69,6 @@ func download(w http.ResponseWriter, r *http.Request) {
 			toLog(errs.Error())
 			return
 		}
-		toLog(fmt.Sprintf("%v создано", len(sfls.Files)))
 		copyFiles(sfls.Files)
 		w.Write([]byte("Process finished"))
 	} else {
@@ -81,27 +80,36 @@ func download(w http.ResponseWriter, r *http.Request) {
 
 func copyFiles(slicefls []string) {
 	toLog("process started")
+	toLog("logpath:" + logpath)
 	config := app.NewConfig()
 	var wg sync.WaitGroup
-	goroutines := make(chan int, 10)
+	goroutines := make(chan int, config.FTP.Connections)
 	// Read data from input channel
+	countError := 0
 	if slicefls != nil {
+		toLog(fmt.Sprintf("%v files", len(slicefls)))
 		for _, value := range slicefls {
-			toLog(value)
 			name := value
 			goroutines <- 1
+
 			wg.Add(1)
-			go func(name string, goroutines <-chan int, wg *sync.WaitGroup) {
-				msg := oneFile(name, name, *config)
-				toLog(msg)
+			go func(name string, goroutines <-chan int, countError *int, wg *sync.WaitGroup) {
+				msg, success := oneFile(name, name, *config)
+				if msg != "" {
+					toLog(msg)
+					if success == false {
+						*countError++
+					}
+				}
 				<-goroutines
 				wg.Done()
-			}(name, goroutines, &wg)
+			}(name, goroutines, &countError, &wg)
 		}
 	}
 	wg.Wait()
 	close(goroutines)
 	toLog("process finished")
+	toLog(fmt.Sprintf("ошибки: %v", countError))
 }
 
 func check(e error) {
@@ -110,7 +118,7 @@ func check(e error) {
 	}
 }
 
-func oneFile(fileIn string, fileOut string, cnf app.Config) (result string) {
+func oneFile(fileIn string, fileOut string, cnf app.Config) (result string, success bool) {
 	src := cnf.FTP.SourcePath + "/" + fileIn
 	destination := cnf.FTP.DestinationPath + "/" + fileOut
 	ok, err := exists(destination)
@@ -128,23 +136,34 @@ func oneFile(fileIn string, fileOut string, cnf app.Config) (result string) {
 		}
 
 		client, err := goftp.DialConfig(config, cnf.FTP.Host)
-		check(err)
+		if err != nil {
+			result = err.Error()
+			return
+		}
 
 		// download to a buffer instead of file
 		buf := new(bytes.Buffer)
 		err = client.Retrieve(src, buf)
-		check(err)
+		if err != nil {
+			result = err.Error()
+			return
+		}
 
 		fl, err := os.Create(destination)
-		check(err)
+		if err != nil {
+			result = err.Error()
+			return
+		}
 		defer fl.Close()
 
 		n2, err := fl.Write(buf.Bytes())
-		check(err)
-		result = fmt.Sprintf("записано %v байт в %v", n2, fileOut)
-	} else {
-		result = fmt.Sprintf("%v загружен", destination)
+		if err != nil {
+			result = err.Error()
+			return
+		}
+		result = fmt.Sprintf("загрузка %v bytes in %v", n2, fileOut)
 	}
+	success = true
 	return
 }
 
