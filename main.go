@@ -38,7 +38,7 @@ func toLog(msg string) {
 	}
 	if logpath != "" {
 		f, err := os.OpenFile(logpath,
-			os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+			os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 		if err != nil {
 			log.Println(err)
 		}
