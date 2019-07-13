@@ -6,3 +6,4 @@ ftp:
   destinationPath: "path_to_dir_download"
   isRewrite: true
   logPath: "path_to_log_file"
+  connections: 10
