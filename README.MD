@@ -1,5 +1,6 @@
     
 #Install go    
+
     #yum update
     #wget https://dl.google.com/go/go1.12.6.linux-amd64.tar.gz
     #tar -xzf go1.12.6.linux-amd64.tar.gz
@@ -9,6 +10,7 @@
     add to file end export PATH=$PATH:/usr/local/go/bin
     #reboot
 #check 
+
     #go env
 #usage
     # git clone https://github.com/cadyrov/ftploader
